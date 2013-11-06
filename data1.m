@@ -60,8 +60,10 @@ trainamt = n - testamt; %amount of training set
 subsetRatio  = 0.9; %percentage of training labels used for cross validation
 
 
+
 nmd = @(p1, p2) sum(sum((p1-p2).^2));
 nbd = @(p1, p2,s) sum(sum(((p1-p2)./s).^2));
+md = @(p1, p2,s) sum(sum(((p1-p2)./s).^2));
 ber = @(a,b,c,d) .5*(a/(a+b) + c/(c+d));
 for folds = 1:10
     trainingIndices1 = randperm(round(subsetRatio*trainamt)); %index values for training set
