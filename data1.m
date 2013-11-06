@@ -68,7 +68,7 @@ nbd = @(p1, p2,s) sum(sum(((p1-p2)./s).^2));
 md = @(P1, M,R) sum(sum(((P1-M)'*R*(P1-M)).^2));
 ber = @(a,b,c,d) .5*(a/(a+b) + c/(c+d));
 
-nfolds=1000;
+nfolds=10;
 err_nm = zeros(1, nfolds);
 err_nb = zeros(1, nfolds);
 err_md = zeros(1, nfolds);
