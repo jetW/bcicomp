@@ -3,11 +3,17 @@ f = ls('dataset1/*calib*.mat');
 
 eeglab; clc;
 
-for fid = 1%:size(f,1)
+%this for loop iterates over all datasets in dataset1. i've commented out
+%the iteration because we will implement the algorithms for one dataset
+%first.
+for fid = 1%:size(f,1) 
    
    fn = cat(2, 'dataset1/',strtrim(f(fid,:)));
    data= load(fn);
     
+   %in order to store eeg information in EEGLAB through scripts, we must
+   %first create a struct with several properties. Some of these properties
+   %are known, but some are not, but they still need to be initialized.
    NE.setname = strtrim(f(fid,:));
    NE.filename = '';
    NE.filepath = '';
@@ -40,11 +46,13 @@ for fid = 1%:size(f,1)
    
    eeg_checkset(NE);
    classes=data.nfo.classes;
-   [ALLEEG, ~, ~] = eeg_store(ALLEEG, NE);
+   [ALLEEG, ~, ~] = eeg_store(ALLEEG, NE); 
    
+   %we slice the eeg recordings into several epochs (0.5 to 3.5s after the stimulus), and grab the epochs
+   %with -1 and +1 labels seperately.
    EEG = pop_epoch( NE, {  '-1'  }, [0.5         3.5], 'newname', '-1 epochs', 'epochinfo', 'yes');
    [ALLEEG, EEG, ~] = eeg_store(ALLEEG, EEG);
-    class1=EEG.data; 
+    class1=EEG.data; %eeg epocjs corresponding to class 1 in a m x n x o (channels x timepoints x epochs) matrix where o is the number of epochs
    
    EEG = pop_epoch( NE,  {  '1'  }, [0.5         3.5], 'newname', '+1 epochs', 'epochinfo', 'yes');
    [ALLEEG, EEG, ~] = eeg_store(ALLEEG, EEG); 
@@ -54,14 +62,18 @@ end
 
 n = size(class1,3);
 
+% the below code is for cross validation 
+
 testamt = ceil(0.2*n); %amount of testing set 
 testingIndices = n:-1:n-testamt; %index values for testing set
 
 trainamt = n - testamt; %amount of training set
 subsetRatio  = 0.9; %percentage of training labels used for cross validation
 
-
 %%
+%these are function handles for nearest means (nm), naive bayes(nb),
+%mahalanobis distance (md), and balanced error (ber)
+
 nmd = @(p1, p2) sum(sum((p1-p2).^2));
 nbd = @(p1, p2,s) sum(sum(((p1-p2)./s).^2));
 md = @(P1, M,R) sum(sum(((P1-M)'*R*(P1-M)).^2));
@@ -189,5 +201,3 @@ fprintf('Nearest Means: %0.4f (%0.4f)\n', mean(err_nm), std(err_nm));
 fprintf('Naive Bayes: %0.4f (%0.4f)\n', mean(err_nb), std(err_nb));
 fprintf('Mahalanobis Distance: %0.4f (%0.4f)\n', mean(err_md), std(err_md));
 fprintf('3 Nearest Neighbors: %0.4f (%0.4f)\n', mean(err_knn), std(err_knn));
-
-
