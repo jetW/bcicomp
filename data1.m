@@ -1,4 +1,3 @@
-addpath('dataset1');
 addpath(genpath('../Libraries/eeglab12_0_2_5b'));
 f = ls('dataset1/*calib*.mat');
 
@@ -182,6 +181,8 @@ for folds = 1:nfolds
         if(mode(newclassvec(1:k))==1)d=d+1; else c=c+1; end
     end
         err_knn(folds) = ber(a,b,c,d);
+        
+        
 end
 
 fprintf('Nearest Means: %0.4f (%0.4f)\n', mean(err_nm), std(err_nm));

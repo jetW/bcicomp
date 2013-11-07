@@ -72,6 +72,8 @@ nfolds=10;
 err_nm = zeros(1, nfolds);
 err_nb = zeros(1, nfolds);
 err_md = zeros(1, nfolds);
+err_knn = zeros(1, nfolds);
+    
 for folds = 1:nfolds
     trainingIndices1 = randperm(round(subsetRatio*trainamt)); %index values for training set
     trainingIndices2 = randperm(round(subsetRatio*trainamt)); %index values for training set
@@ -145,31 +147,48 @@ for folds = 1:nfolds
     err_md(folds) = ber(a,b,c,d);
     
     % 3-nearest means
-    k=3;
-    distances1 = zeroes(1,size(class1,3));
-    distances2 = zeroes(1,size(class1,3));
+    k=5;
+    distances1 = zeros(1,size(traindata1,3));
+    distances2 = zeros(1,size(traindata1,3));
     
     for i = testingIndices
        cts = class1(:,:,i);
        
        for j = 1:size(traindata1,3)
-        distances1(j) = nmd(cts, traindata1(:,:,i));
-        distances2(j) = nmd(cts, traindata2(:,:,i));
+        distances1(j) = nmd(cts, traindata1(:,:,j));
+        distances2(j) = nmd(cts, traindata2(:,:,j));
        end
-       classvec = ones(1, size(class1,3))
+       ds = [distances1, distances2];
+       [sds, IDX] = sort(ds, 'descend');
+       
+       classvec = [ones(1, size(class1,3)) 2*ones(1, size(class1,3))];
+       newclassvec = classvec(IDX);
+       
+       if(mode(newclassvec(1:k))==2) a=a+1; else b=b+1; end
+       
        
        cts2 = class2(:,:,i);
        
        for j = 1:size(traindata1,3)
-        distances1(j) = nmd(cts2, traindata1(:,:,i));
-        distances2(j) = nmd(cts2, traindata2(:,:,i));
+        distances1(j) = nmd(cts2, traindata1(:,:,j));
+        distances2(j) = nmd(cts2, traindata2(:,:,j));
        end
+        ds = [distances1, distances2];
+       [sds, IDX] = sort(ds, 'descend');
+       
+       classvec = [ones(1, size(class1,3)) 2*ones(1, size(class1,3))];
+       newclassvec = classvec(IDX);
+       
+        if(mode(newclassvec(1:k))==1)d=d+1; else c=c+1; end
     end
-    
+        err_knn(folds) = ber(a,b,c,d);
+        
+        
 end
 
 fprintf('Nearest Means: %0.4f (%0.4f)\n', mean(err_nm), std(err_nm));
 fprintf('Naive Bayes: %0.4f (%0.4f)\n', mean(err_nb), std(err_nb));
 fprintf('Mahalanobis Distance: %0.4f (%0.4f)\n', mean(err_md), std(err_md));
+fprintf('3 Nearest Neighbors: %0.4f (%0.4f)\n', mean(err_knn), std(err_knn));
 
 
