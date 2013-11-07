@@ -4,4 +4,4 @@ Datasets are in the dataset folder. We are currently looking at one particular d
 
 Dependencies
 =======
-You'll need eeglab, and it must be placed in the appropriate folder ('../Libraries/eeglab_folder'), that is, if you don't want to change the library location.
+You'll need <a href='http://sccn.ucsd.edu/eeglab/'>eeglab</a>, and it must be placed in the appropriate folder ('../Libraries/eeglab_folder'), that is, if you don't want to change the library location.
