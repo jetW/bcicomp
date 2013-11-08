@@ -1,4 +1,5 @@
 addpath(genpath('../Libraries/eeglab12_0_2_5b'));
+%Prasad is gay
 f = ls('dataset1/*calib*.mat');
 
 eeglab; clc;
