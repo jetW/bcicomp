@@ -1,6 +1,6 @@
 bcicomp
 =======
-Processing the BCI Competition IV dataset 1 with the following classifiers:
+Processing the <a href='http://www.bbci.de/competition/iv/desc_1.html'> BCI Competition IV dataset 1</a> with the following classifiers:
 
 <ul>
 <li> Nearest Means </li>
@@ -17,3 +17,4 @@ Currently we are operating on the raw time points for arguments sake. Frequency 
 Dependencies
 =======
 <a href='http://sccn.ucsd.edu/eeglab/'>Eeglab</a> is required to slice up the data and for visualizations.
+
