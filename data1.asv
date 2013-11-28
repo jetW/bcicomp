@@ -48,7 +48,8 @@ for fid = 1%:size(f,1)
    classes=data.nfo.classes;
    [ALLEEG, ~, ~] = eeg_store(ALLEEG, NE); 
    
-   %we slice the eeg recordings into several epochs (0.5 to 3.5s after the stimulus), and grab the epochs
+   %we slice the eeg recordings into several epochs (0.5 to 3.5s after the
+   %stimulus), and grab the epochs.0
    %with -1 and +1 labels seperately.
    EEG = pop_epoch( NE, {  '-1'  }, [0.5         3.5], 'newname', '-1 epochs', 'epochinfo', 'yes');
    [ALLEEG, EEG, ~] = eeg_store(ALLEEG, EEG);
@@ -61,7 +62,7 @@ for fid = 1%:size(f,1)
 end
 %% Zhang's Method
 
-%interval needs 
+
 
 %%
 classification;
