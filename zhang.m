@@ -1,5 +1,6 @@
 %%%%%%%%%%%%%%%%%%
-%Zhang's BCI method, FBCSP + PCA decomposition for NC
+%Zhang's BCI method
+%grab window, filter
 %%%%%%%%%%%%%%%%%%
 
 fs = EEG.srate;
@@ -142,11 +143,11 @@ for fi = 1:length(fc)
     
 end
 %% Collect features
-disp('Collect features...');
+disp('Collecting features...');
 feNCS1 = zeros(size(NCS1, 3),4*5*length(fc)); feNCS2 = zeros(size(NCS2, 3),4*5*length(fc)); feM1 = zeros(nM1, 4*5*length(fc)) ; feM2 = zeros(nM2, 4*5*length(fc)); %memory initilization, observations X features
     
 % TODO: The epoch sets used in feature collection should NOT be the same as
-% thosed used for calculating the csp weights (right?...maybe)
+% thosed used for calculating the csp weights (...maybe)
 
    restoredefaultpath
 for fi = 1:length(fc)
@@ -155,7 +156,7 @@ for fi = 1:length(fc)
        
         r = (fi-1)*20+1:(fi-1)*20+20;
         
-        disp('ncs1 features...');
+%         disp('ncs1 features...');
         for i = 1:nNCS1
             fNCS1 = filtfilt(b(fi,:), a(fi,:), double(NCS1(:,:,i)'))'; 
             feNCS1(i,r(1):r(4))     = diag(  Wm1vm2(:,:,fi)*fNCS1 * ( Wm1vm2(:,:,fi)*fNCS1)' )';
@@ -165,7 +166,7 @@ for fi = 1:length(fc)
             feNCS1(i,r(17):r(20))   = diag( Wm2vnc2(:,:,fi)*fNCS1 * (Wm2vnc2(:,:,fi)*fNCS1)' )';
         end
         
-        disp('ncs2 features...');
+%         disp('ncs2 features...');
         for i = 1:nNCS2
             fNCS2 = filtfilt(b(fi,:), a(fi,:), double(NCS2(:,:,i)'))'; 
             feNCS2(i,r(1):r(4))     = diag(  Wm1vm2(:,:,fi)*fNCS2 * ( Wm1vm2(:,:,fi)*fNCS2)' )';
@@ -175,7 +176,7 @@ for fi = 1:length(fc)
             feNCS2(i,r(17):r(20))   = diag( Wm2vnc2(:,:,fi)*fNCS2 * (Wm2vnc2(:,:,fi)*fNCS2)' )';
         end
         
-        disp('m1 features...');
+%         disp('m1 features...');
         for i = 1:nM1
             fM1 = filtfilt(b(fi,:), a(fi,:), double(M1(:,:,i)'))'; 
             feM1(i,r(1):r(4))     = diag(  Wm1vm2(:,:,fi)*fM1 * ( Wm1vm2(:,:,fi)*fM1)' )';
@@ -185,9 +186,9 @@ for fi = 1:length(fc)
             feM1(i,r(17):r(20))   = diag( Wm2vnc2(:,:,fi)*fM1 * (Wm2vnc2(:,:,fi)*fM1)' )';
         end
         
-        disp('m2 features');
+%         disp('m2 features');
         for i = 1:nM2
-            fM2 = filtfilt(b(fi,:), a(fi,:), double(NCS2(:,:,i)'))'; 
+            fM2 = filtfilt(b(fi,:), a(fi,:), double(M2(:,:,i)'))'; 
             feM2(i,r(1):r(4))     = diag(  Wm1vm2(:,:,fi)*fM2 * ( Wm1vm2(:,:,fi)*fM2)' )';
             feM2(i,r(5):r(8))     = diag( Wm1vnc1(:,:,fi)*fM2 * (Wm1vnc1(:,:,fi)*fM2)' )';
             feM2(i,r(9):r(12))    = diag( Wm1vnc2(:,:,fi)*fM2 * (Wm1vnc2(:,:,fi)*fM2)' )';
@@ -198,5 +199,62 @@ end
    
 addpath(genpath('../Libraries/eeglab12_0_2_5b'));
 %% feature selection (using mutual information)
-% IEA = 
+disp('Calculating MI....');
+%MI(A, C) = MI(C,A) = H(A) - H(A|C); 
+A = [feNCS1; feNCS2; feM1; feM2];
+p = size(A,2);
+n = size(A,1);
 
+S = (4/((p+2)*n))^(1/p+4)*(diag(var(A))); % bowman and azzalini optimal h
+Sinv = inv(S);
+
+m = mean(A)';
+%zhang equation 12
+k=p;
+phi = @(t) sqrt((2*pi)^k*det(S))*exp(-0.5 * t'*Sinv*t); 
+
+HA = 0; 
+for i = 1:n
+    HAi = 0;
+    for j= 1:n, HAi = HAi + phi(A(i, :)' - A(j, :)');disp(HAi);  end
+    HA = HA + (-1/n)*log(HAi);
+end
+HA = -1/n*HA;
+
+HA_C =  0;
+ns = size(feNCS1,1);
+for i = 1:ns
+    HA_Ci = 0;
+    for j= 1:ns, HA_Ci = HA_Ci + phi(feNCS1(i, :)' - feNCS1(j, :)');  end
+    HA_Co = HA_Co + (-1/n)*log(HAi);
+end
+
+ns = size(feNCS2,1);
+for i = 1:ns
+    HA_Ci = 0;
+    for j= 1:ns, HA_Ci = HA_Ci + phi(feNCS2(i, :)' - feNCS2(j, :)');  end
+    HA_Co = HA_Co + (-1/n)*log(HAi);
+end
+Pc = (size(feNCS1,1)+size(feNCS2,1)) / size(A,1);
+HA_C = HA_C + -1/n*HA_Co*Pc;
+
+ns = size(feM1,1);
+for i = 1:ns
+    HA_Ci = 0;
+    for j= 1:ns, HA_Ci = HA_Ci + phi(feM1(i, :)' - feM1(j, :)');  end
+    HA_Co = HA_Co + (-1/n)*log(HAi);
+end
+Pc = size(feM1,1)/size(A,1);
+HA_C = HA_C + -1/n*HA_Co*Pc;
+
+ns = size(feM2,1);
+for i = 1:ns
+    HA_Ci = 0;
+    for j= 1:ns, HA_Ci = HA_Ci + phi(feM2(i, :)' - feM2(j, :)');  end
+    HA_Co = HA_Co + (-1/n)*log(HAi);
+end
+Pc = size(feM2,1)/size(A,1);
+HA_C = HA_C + -1/n*HA_Co*Pc;
+
+
+MI = HA-HA_C;
