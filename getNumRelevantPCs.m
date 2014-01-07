@@ -9,7 +9,7 @@ function cp = getNumRelevantPCs(NC)
         p = cumsum(LATENT)/sum(LATENT);
         pi = find(p >= 0.95);
         pi = pi(1);
-        fprintf('%d) %d\n', i, pi);
+%         fprintf('%d) %d\n', i, pi);
         cp = cp+ pi;
     end
     cp = ceil(cp/i);

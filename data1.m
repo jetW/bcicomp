@@ -1,3 +1,4 @@
+clear all; close all; clc;
 addpath(genpath('../Libraries/eeglab12_0_2_5b'));
 f = ls('sets/*.set');
 
@@ -10,12 +11,10 @@ eeglab; clc;
 for fid = 1%:size(f,1) 
    
    fn = cat(2,strtrim(f(fid,:)));
-   EEG = pop_loadset('filename',fn,'filepath','C:\\Users\\pt2091\\Documents\\MATLAB\\bcicomp\\sets\\');
-   zhang
+   EEG = pop_loadset('filename',fn,'filepath','C:\\Users\\Administrator\\Documents\\MATLAB\\bcicomp\\sets\\');
+   zhang; %perform zhang's method
 end
-%% Zhang's Method
 
-%interval needs 
 
 %%
 % classification;
